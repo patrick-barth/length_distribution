@@ -1,3 +1,7 @@
+process gb_to_fasta {
+	//TODO: add process
+}
+
 /*
  * Prepares index for bowtie2
  * Input: [FASTA] Reference file 

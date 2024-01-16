@@ -11,13 +11,37 @@ include{
     collect_versions
 } from './modules/default_processes.nf'
 
+include{
+    quality_control
+    quality_control_2
+    adapter_removal
+    filter_bacterial_contamination
+} from './modules/read_processing.nf'
+
+include{
+    gb_to_fasta
+} from './modules/alignment.nf'
+
+if (params.aligner == "bowtie2"){
+    include{
+        build_index_bowtie
+        mapping_bowtie
+    } from './modules/alignment.nf'
+} else if (params.aligner == "star"){
+    include{
+        build_index_STAR
+        mapping_STAR
+    } from './modules/alignment.nf'
+}
+
+
 /*
  * Prints help and exits workflow afterwards when parameter --help is set to true
  */
 
 if ( params.help ) {
-    help = """main.nf: A description of your script and maybe some examples of how
-                |                to run the script
+    help = """main.nf: Pipeline that reports the length distribution of all reads alignablke to a provided reference.
+                |       
                 |Required arguments:
                 |   --reads         Location of the input file file (FASTQ).
                 |
@@ -29,6 +53,8 @@ if ( params.help ) {
                 |   --min_percent_qual_filter   Minimum percentage of bases within a read that need to
                 |                               be above the quality threshold
                 |                               [default: ${params.min_percent_qual_filter}]
+                |   --aligner       States which alignment tool is used. Currently available are: 
+                |                   'bowtie2' and 'star'
                 |  -w            The NextFlow work directory. Delete the directory once the process
                 |                is finished [default: ${workDir}]""".stripMargin()
     // Print the help with the stripped margin and exit
@@ -42,16 +68,18 @@ if ( params.help ) {
  * Welcome log to be displayed before workflow
  */
 log.info """\
-         ${params.manifest.name} v${params.manifest.version}
-         ==========================
-         input from   : ${params.input_file}
-         output to    : ${params.output_dir}
-         --
-         run as       : ${workflow.commandLine}
-         started at   : ${workflow.start}
-         config files : ${workflow.configFiles}
-         """
-         .stripIndent()
+        ${params.manifest.name} v${params.manifest.version}
+        ==========================
+        input from   : ${params.input_file}
+        output to    : ${params.output_dir}
+        --
+        Filter bacterial contamination: ${params.filter_bacterial_contamination}
+        --
+        run as       : ${workflow.commandLine}
+        started at   : ${workflow.start}
+        config files : ${workflow.configFiles}
+        """
+        .stripIndent()
 
 //essential input files
 input_reads     = Channel.fromPath( params.reads )			//FASTQ file(s) containing reads
@@ -75,8 +103,10 @@ workflow preprocessing {
     main:
         quality_control(input_reads)
         adapter_removal(input_reads)
-        quality_filter(adapter_removal.out.fastq_trimmed)
-        quality_control_2(quality_filter.out.fastq_quality_filtered)
+        if() { //TODO: if bac cont removal 
+            filter_bacterial_contamination() //TODO:input from adapter removal
+        }
+        quality_control_2() //TODO: input from adapter removal or bac cont filter
 
     emit:
         //data for multiqc
@@ -89,13 +119,90 @@ workflow preprocessing {
         fastq_reads_quality_filtered                = quality_filter.out.fastq_quality_filtered
 }
 
+workflow alignment {
+    take:
+        reference
+        annotation
+        reads
 
+    main:
+        if(params.aligner == "bowtie2"){
+            build_index_bowtie(reference)
+            mapping_bowtie(build_index_bowtie.out.index.first(),
+                            reads)
+
+            alignments_tmp          =   mapping_bowtie.out.bam_alignments
+            version_index_tmp       =   build_index_bowtie.out.version
+            version_align_tmp       =   mapping_bowtie.out.version
+            report_tmp              =   mapping_bowtie.out.report
+        } else if (params.aligner == "star"){
+            build_index_STAR(reference,
+                            annotation)
+            mapping_STAR(reads
+                        .combine(build_index_STAR.out.index))
+
+            alignments_tmp          =   mapping_STAR.out.bam_alignments
+            version_index_tmp       =   build_index_STAR.out.version
+            version_align_tmp       =   mapping_STAR.out.version
+            report_tmp              =   mapping_STAR.out.report
+        } 
+
+    emit:
+        version_index   =   version_index_tmp
+        version_align   =   version_align_tmp
+        reports         =   report_tmp
+
+        alignments      =   alignments_tmp
+}
+
+workflow count_features{
+    take:
+        //TODO: Inputs
+    main:
+        //TODO: Logic
+    emit:
+        //TODO: Outputs
+}
+
+workflow read_extraction{
+    take:
+        //TODO: Inputs
+    main:
+        //TODO: Logic
+    emit:
+        //TODO: Outputs
+}
+
+workflow length_distribution{
+    take:
+        //TODO: Inputs
+    main:
+        //TODO: Logic
+    emit:
+        //TODO: Outputs
+}
 
 /*
  * Actual workflow connecting subworkflows
  */
 workflow {
     preprocessing(input_reads)
+    
+
+    //Alignment
+    if(){ //TODO: ref ends with gb
+        gb_to_fasta()//TODO:input from reference as gb
+    }
+    alignment() //TODO: input from preprocessing
+    //feature_splitting
+    if(){ //TODO: alignment ends with gb
+        gb_to_gtf()//TODO: input from reference as gb
+    }
+    if(){ // split after features
+        count_features() //TODO: input from 
+    }
+    read_extraction() //TODO: Input from alignments and processed reads
+    
 
     // Collect metadata
     collect_metadata()
