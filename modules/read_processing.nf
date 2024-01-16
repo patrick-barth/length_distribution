@@ -63,27 +63,26 @@ process adapter_removal {
 	"""
 }
 
-/*
- * Removes bases with low quality from reads
- * Input: [FASTQ] Read file
- * Params: 	params.min_qual					-> Bases below this threshold are omitted 
- *			params.min_percent_qual_filter	-> Minimum percentage of bases of a read need to be above this threshold to keep the it 
- * Output: 	fastq_quality_filtered 	-> [FASTQ] Read file with low quality bases filtered out
- *			report_quality_filter 	-> [TXT] Report of quality filtering
- */
-process quality_filter {
+process filter_bacterial_contamination {
 	tag {query.simpleName}
-	publishDir "${params.output}/statistics", mode: 'copy', pattern: "summary-quality-filter.txt"
+	conda 'kraken2 bracken' //TODO: Create Docker container
+	publishDir "${params.output_dir}/statistics/bacterial_contamination_filter", mode: 'copy', pattern: "${query.simpleName}.bac-filter.report"
 
 	input:
-	path query
+	file(query)
 
 	output:
-	path "${query.baseName}.qual-filter.fastq", emit: fastq_quality_filtered 
-	path 'summary-quality-filter.txt', emit: report_quality_filter 
-
+	path("${query.simpleName}.bac-filter.report"), emit: report
+	path("${query.simpleName}.bac-filtered.fastq"), emit: fastq
 
 	"""
-	fastq_quality_filter -v -q ${params.min_qual} -p ${params.min_percent_qual_filter} -i ${query} -o ${query.baseName}.qual-filter.fastq > summary-quality-filter.txt
+	kraken2	--use-names \
+		--threads ${task.cpus} \
+		--db ${params.kraken_db} \
+		--fastq-input \
+		--report ${query.simpleName}.bac-filter.report \
+		--unclassified-out ${query.simpleName}.bac-filtered.fastq \
+		${query} \
+		> ${query.simpleName}.kraken //TODO: Check which reports are actually important
 	"""
 }

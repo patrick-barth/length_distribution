@@ -70,10 +70,14 @@ if ( params.help ) {
 log.info """\
         ${params.manifest.name} v${params.manifest.version}
         ==========================
-        input from   : ${params.input_file}
+        Reads        : ${params.input_file}
+        Reference    : ${params.reference}
+        Annotation   : ${params.annotation}
         output to    : ${params.output_dir}
         --
-        Filter bacterial contamination: ${params.filter_bacterial_contamination}
+        Minmum read length              : ${params.min_length}
+        Filter bacterial contamination  : ${params.filter_bacterial_contamination}
+        Kraken DB directory             : ${params.kraken_db}
         --
         run as       : ${workflow.commandLine}
         started at   : ${workflow.start}
@@ -81,8 +85,14 @@ log.info """\
         """
         .stripIndent()
 
+/*
+ * Input
+ */
+
 //essential input files
-input_reads     = Channel.fromPath( params.reads )			//FASTQ file(s) containing reads
+input_reads     = Channel.fromPath( params.reads )
+reference       = Channel.fromPath( params.reference )
+
 //non essential input files
 if(params.annotation != 'NO_FILE'){
     annotation_file = Channel.fromPath( params.annotation )
@@ -94,6 +104,8 @@ input_files = input_reads.concat(Channel.of(annotation))
                     .concat(reference)
                     .flatten().toList()
 
+reference_extension = reference.getExtension()
+
 /*
  * Starting subworkflow descriptions
  */
@@ -103,20 +115,20 @@ workflow preprocessing {
     main:
         quality_control(input_reads)
         adapter_removal(input_reads)
-        if() { //TODO: if bac cont removal 
-            filter_bacterial_contamination() //TODO:input from adapter removal
+        if(filter_bacterial_contamination) { 
+            filter_bacterial_contamination(adapter_removal.out.fastq_trimmed)
         }
-        quality_control_2() //TODO: input from adapter removal or bac cont filter
+        processed_reads = filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq_filtered : adapter_removal.out.fastq_trimmed
+        quality_control_2(processed_reads)
 
     emit:
         //data for multiqc
         multiqc_quality_control                     = quality_control.out
         multiqc_quality_control_post_preprocessing  = quality_control_2.out
         multiqc_adapter_removal                     = adapter_removal.out.report_trimming
-        multiqc_quality_filter                      = quality_filter.out.report_quality_filter
 
         // data for downstream processes
-        fastq_reads_quality_filtered                = quality_filter.out.fastq_quality_filtered
+        fastq_reads_quality_filtered                = processed_reads
 }
 
 workflow alignment {
@@ -190,19 +202,20 @@ workflow {
     
 
     //Alignment
-    if(){ //TODO: ref ends with gb
+    if(reference_extension == 'gb'){
         gb_to_fasta()//TODO:input from reference as gb
     }
+    reference_collect = reference_extension == 'gb' ? gb_to_fasta.out.reference : reference
     alignment() //TODO: input from preprocessing
     //feature_splitting
-    if(){ //TODO: alignment ends with gb
+    if(reference_extension == 'gb'){
         gb_to_gtf()//TODO: input from reference as gb
     }
     if(){ // split after features
         count_features() //TODO: input from 
     }
     read_extraction() //TODO: Input from alignments and processed reads
-    
+
 
     // Collect metadata
     collect_metadata()
