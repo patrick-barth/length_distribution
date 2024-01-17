@@ -34,6 +34,23 @@ if (params.aligner == "bowtie2"){
     } from './modules/alignment.nf'
 }
 
+include{
+    gb_to_gtf
+    count_features
+    feature_splitting
+} from './modules/feature_splitting.nf'
+
+include{
+    extract_read_names
+    collect_reads
+    extract_reads
+} from './modules/read_extraction.nf'
+
+include{
+    count_length_distribution
+    calculate_length_percentage
+} from './modules/length_distribution.nf'
+
 
 /*
  * Prints help and exits workflow afterwards when parameter --help is set to true
