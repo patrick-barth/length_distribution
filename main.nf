@@ -87,7 +87,7 @@ if ( params.help ) {
 log.info """\
         ${params.manifest.name} v${params.manifest.version}
         ==========================
-        Reads        : ${params.input_file}
+        Reads        : ${params.reads}
         Reference    : ${params.reference}
         Annotation   : ${params.annotation}
         output to    : ${params.output_dir}
@@ -240,7 +240,6 @@ workflow length_distribution{
 workflow {
     preprocessing(input_reads)
     
-
     //Alignment
     if(reference_extension == 'gb'){
         gb_to_fasta(reference)
