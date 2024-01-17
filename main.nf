@@ -200,7 +200,7 @@ workflow count_split_features{
             gb_to_gtf(reference)
         }
         feature_info = reference_extension == 'gb' ? gb_to_gtf.out.gtf : annotation
-        count_features(alignemnts.flatten()
+        count_features(alignments.flatten()
                         .combine(feature_info))
         feature_splitting(count_features.out.feature_alignments)
 
@@ -257,11 +257,11 @@ workflow {
         preprocessing.out.fastq_reads) 
     //feature_splitting
     if(params.split_features){
-        count_split_features(reference_collect,
-            alignment.out.alignemnts,
+        count_split_features(reference,
+            alignment.out.alignments,
             annotation) 
     }
-    collect_split = params.split_features ? count_split_features.out.read.names.split : Channel.empty()
+    collect_split = params.split_features ? count_split_features.out.read_names_split : Channel.empty()
     read_extraction(alignment.out.alignments,
         preprocessing.out.fastq_reads,
         collect_split)
