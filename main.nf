@@ -145,7 +145,7 @@ workflow preprocessing {
         multiqc_adapter_removal                     = adapter_removal.out.report_trimming
 
         // data for downstream processes
-        fastq_reads_quality_filtered                = processed_reads
+        fastq_reads                                 = processed_reads
 }
 
 workflow alignment {
@@ -235,7 +235,7 @@ workflow length_distribution{
 }
 
 /*
- * Actual workflow connecting subworkflows
+ * Actual workflow
  */
 workflow {
     preprocessing(input_reads)
@@ -246,14 +246,19 @@ workflow {
         gb_to_fasta(reference)
     }
     reference_collect = reference_extension == 'gb' ? gb_to_fasta.out.reference : reference
-    alignment() //TODO: input from preprocessing
+    alignment(reference_collect,
+        annotation,
+        preprocessing.out.fastq_reads) 
     //feature_splitting
-    if(){ // split after features
-        
-        count_features() //TODO: input from 
+    if(params.split_features){
+        count_features(reference_collect,
+            alignment.out.alignemnts,
+            annotation) 
     }
-    read_extraction() //TODO: Input from alignments and processed reads
-
+    collect_split = params.split_features ? count_features.out.read.names.split : Channel.empty()
+    read_extraction(alignment.out.alignemnts,
+        preprocessing.out.fastq_reads,
+        collect_split)
 
     // Collect metadata
     collect_metadata()
