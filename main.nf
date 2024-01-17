@@ -169,11 +169,21 @@ workflow alignment {
 
 workflow count_features{
     take:
-        //TODO: Inputs
+        reference
+        alignments
+        annotation
+
     main:
-        //TODO: Logic
+        if(reference_extension == 'gb'){
+            gb_to_gtf(reference)
+        }
+        feature_info = reference_extension ? gb_to_gtf.out.gtf : annotation
+        count_features(alignemnts.flatten()
+                        .combine(feature_info))
+        feature_splitting(count_features.out.feature_alignments)
+
     emit:
-        //TODO: Outputs
+        read_names_split    =   feature_splitting.out.read_names
 }
 
 workflow read_extraction{
@@ -203,15 +213,13 @@ workflow {
 
     //Alignment
     if(reference_extension == 'gb'){
-        gb_to_fasta()//TODO:input from reference as gb
+        gb_to_fasta(reference)
     }
     reference_collect = reference_extension == 'gb' ? gb_to_fasta.out.reference : reference
     alignment() //TODO: input from preprocessing
     //feature_splitting
-    if(reference_extension == 'gb'){
-        gb_to_gtf()//TODO: input from reference as gb
-    }
     if(){ // split after features
+        
         count_features() //TODO: input from 
     }
     read_extraction() //TODO: Input from alignments and processed reads
