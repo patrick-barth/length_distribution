@@ -94,7 +94,7 @@ log.info """\
         --
         Minmum read length              : ${params.min_length}
         Filter bacterial contamination  : ${params.filter_bacterial_contamination}
-        Kraken DB directory             : ${params.kraken_db}
+        Kraken DB directory             : ${params.kraken_db_dir}
         --
         run as       : ${workflow.commandLine}
         started at   : ${workflow.start}
