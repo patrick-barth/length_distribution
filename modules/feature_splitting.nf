@@ -2,7 +2,6 @@
 //TODO: Add version seqret
 //TODO: Add version gffread
 //TODO: Add version sed
-//TODO: Add output
 process gb_to_gtf {
     
     input:
@@ -25,7 +24,6 @@ process gb_to_gtf {
 
 //TODO: Add container
 //TODO: add version featureCounts
-//TODO: Add output
 process count_features {
     tag{query.simpleName}
 
@@ -42,7 +40,6 @@ process count_features {
 
 //TODO: Add container
 //TODO: add version samtools
-//TODO: Add output
 process feature_splitting {
     tag{query.simpleName}
 
