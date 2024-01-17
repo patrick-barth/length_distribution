@@ -31,10 +31,10 @@ process count_features {
     tuple path(query), path(annotation)
 
     output:
-    path("${alignment}.featureCounts.bam"), emit: feature_alignments
+    path("${query}.featureCounts.bam"), emit: feature_alignments
 
     """
-    featureCounts -a ${annotation} -o featureCounts.tsv ${alignment} -R BAM
+    featureCounts -a ${annotation} -o featureCounts.tsv ${query} -R BAM
     """
 }
 
@@ -50,8 +50,8 @@ process feature_splitting {
     path("*.txt"), emit: read_names
 
     """
-	#samtools view ${alignment} | awk 'BEGIN {FS=OFS="\\t"} {if(!/^@/ && !/^\$/){\$3 = \$22}; print}' | sed 's/XT:Z://g' | samtools view -b -o ${alignment.baseName}_feature.bam -
+	#samtools view ${query} | awk 'BEGIN {FS=OFS="\\t"} {if(!/^@/ && !/^\$/){\$3 = \$22}; print}' | sed 's/XT:Z://g' | samtools view -b -o ${query.baseName}_feature.bam -
 	# This line splits read names according to the feature the reads were aligned to
-	samtools view ${alignment} | cut -f1,22 | sed 's/XT:Z://g' | awk  'BEGIN {FS=OFS="\\t"} {sub("\$", ".txt", \$2); \$2 = "${alignment.simpleName}_"\$2; print}' | awk '{print \$1 > \$2}'
+	samtools view ${query} | cut -f1,22 | sed 's/XT:Z://g' | awk  'BEGIN {FS=OFS="\\t"} {sub("\$", ".txt", \$2); \$2 = "${query.simpleName}_"\$2; print}' | awk '{print \$1 > \$2}'
 	"""
 }
