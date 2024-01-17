@@ -184,7 +184,7 @@ workflow alignment {
         alignments      =   alignments_tmp
 }
 
-workflow count_features{
+workflow count_split_features{
     take:
         reference
         alignments
@@ -250,11 +250,11 @@ workflow {
         preprocessing.out.fastq_reads) 
     //feature_splitting
     if(params.split_features){
-        count_features(reference_collect,
+        count_split_features(reference_collect,
             alignment.out.alignemnts,
             annotation) 
     }
-    collect_split = params.split_features ? count_features.out.read.names.split : Channel.empty()
+    collect_split = params.split_features ? count_split_features.out.read.names.split : Channel.empty()
     read_extraction(alignment.out.alignemnts,
         preprocessing.out.fastq_reads,
         collect_split)
