@@ -1,5 +1,16 @@
+//TODO: add container
+//TODO: add version seqret
 process gb_to_fasta {
-	//TODO: add process
+	
+	input:
+	path(ref)
+
+	output:
+	path(${ref.simpleName}.fasta), emit: reference
+
+	"""
+	seqret -sequence ${ref} -outseq ${ref.simpleName}.fasta -osformat fasta
+	"""
 }
 
 /*
