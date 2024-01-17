@@ -14,8 +14,6 @@ process extract_read_names {
 	"""
 }
 
-//TODO: Add container
-//TODO: add version cat
 process collect_reads {
     input:
     path(query)

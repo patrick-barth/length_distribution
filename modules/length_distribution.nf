@@ -1,4 +1,3 @@
-//TODO: Add container
 //TODO: add version awk
 process count_length_distribution {
     tag{query.simepleName}
