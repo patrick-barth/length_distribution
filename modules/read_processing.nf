@@ -69,7 +69,6 @@ process adapter_removal {
 //TODO: Get version of bracken
 process filter_bacterial_contamination {
 	tag {query.simpleName}
-	conda 'kraken2 bracken'
 	publishDir "${params.output_dir}/statistics/bacterial_contamination_filter", mode: 'copy', pattern: "${query.simpleName}.bac-filter.report"
 
 	input:
