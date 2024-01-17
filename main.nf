@@ -121,7 +121,7 @@ input_files = input_reads.concat(Channel.of(annotation))
                     .concat(reference)
                     .flatten().toList()
 
-reference_extension = reference.getExtension()
+reference_extension = file(params.reference).getExtension()
 
 /*
  * Starting subworkflow descriptions
