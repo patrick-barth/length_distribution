@@ -135,7 +135,7 @@ workflow preprocessing {
         if(filter_bacterial_contamination) { 
             filter_bacterial_contamination(adapter_removal.out.fastq_trimmed)
         }
-        processed_reads = filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq_filtered : adapter_removal.out.fastq_trimmed
+        processed_reads = filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq : adapter_removal.out.fastq_trimmed
         quality_control_2(processed_reads)
 
     emit:
@@ -255,7 +255,7 @@ workflow {
             annotation) 
     }
     collect_split = params.split_features ? count_split_features.out.read.names.split : Channel.empty()
-    read_extraction(alignment.out.alignemnts,
+    read_extraction(alignment.out.alignments,
         preprocessing.out.fastq_reads,
         collect_split)
 

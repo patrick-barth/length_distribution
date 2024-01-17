@@ -6,7 +6,7 @@ process gb_to_fasta {
 	path(ref)
 
 	output:
-	path(${ref.simpleName}.fasta), emit: reference
+	path("${ref.simpleName}.fasta"), emit: reference
 
 	"""
 	seqret -sequence ${ref} -outseq ${ref.simpleName}.fasta -osformat fasta
