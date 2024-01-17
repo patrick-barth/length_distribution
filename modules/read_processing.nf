@@ -63,9 +63,13 @@ process adapter_removal {
 	"""
 }
 
+//TODO: Create Docker container
+//TODO: Check which reports are actually important
+//TODO: Get version of Kraken2
+//TODO: Get version of bracken
 process filter_bacterial_contamination {
 	tag {query.simpleName}
-	conda 'kraken2 bracken' //TODO: Create Docker container
+	conda 'kraken2 bracken'
 	publishDir "${params.output_dir}/statistics/bacterial_contamination_filter", mode: 'copy', pattern: "${query.simpleName}.bac-filter.report"
 
 	input:
@@ -83,6 +87,6 @@ process filter_bacterial_contamination {
 		--report ${query.simpleName}.bac-filter.report \
 		--unclassified-out ${query.simpleName}.bac-filtered.fastq \
 		${query} \
-		> ${query.simpleName}.kraken //TODO: Check which reports are actually important
+		> ${query.simpleName}.kraken
 	"""
 }
