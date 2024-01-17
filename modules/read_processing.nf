@@ -73,6 +73,7 @@ process filter_bacterial_contamination {
 
 	input:
 	file(query)
+	path(db)
 
 	output:
 	path("${query.simpleName}.bac-filter.report"), emit: report
@@ -81,8 +82,7 @@ process filter_bacterial_contamination {
 	"""
 	kraken2	--use-names \
 		--threads ${task.cpus} \
-		--db ${params.kraken_db} \
-		--fastq-input \
+		--db ${db} \
 		--report ${query.simpleName}.bac-filter.report \
 		--unclassified-out ${query.simpleName}.bac-filtered.fastq \
 		${query} \

@@ -116,9 +116,12 @@ if(params.annotation != 'NO_FILE'){
 }
 annotation = file(params.annotation)
 
+kraken_db = file(params.kraken_db_dir).toAbsolutePath()
+
 // Collect all input files
 input_files = input_reads.concat(Channel.of(annotation))
                     .concat(reference)
+                    .concat(kraken_db)
                     .flatten().toList()
 
 reference_extension = file(params.reference).getExtension()
@@ -129,11 +132,13 @@ reference_extension = file(params.reference).getExtension()
 workflow preprocessing {
     take: 
         input_reads
+        kraken_db
     main:
         quality_control(input_reads)
         adapter_removal(input_reads)
         if(params.filter_bacterial_contamination) { 
-            filter_bacterial_contamination(adapter_removal.out.fastq_trimmed)
+            filter_bacterial_contamination(adapter_removal.out.fastq_trimmed,
+                kraken_db)
         }
         processed_reads = params.filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq : adapter_removal.out.fastq_trimmed
         quality_control_2(processed_reads)
@@ -238,7 +243,9 @@ workflow length_distribution{
  * Actual workflow
  */
 workflow {
-    preprocessing(input_reads)
+    
+    preprocessing(input_reads,
+        kraken_db)
     
     //Alignment
     if(reference_extension == 'gb'){
