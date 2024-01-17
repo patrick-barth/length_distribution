@@ -188,20 +188,33 @@ workflow count_features{
 
 workflow read_extraction{
     take:
-        //TODO: Inputs
+        alignments
+        reads
+        split_features
+
     main:
-        //TODO: Logic
+        extract_read_names(alignments)
+        collect_reads(reads.collect())
+        
+        extract_read_names.out.names
+            .concat(split_features).
+            set{collected_read_names}
+
+        extract_reads(collected_read_names.flatten()
+                        .combine(collect_reads.out.reads))
+
     emit:
-        //TODO: Outputs
+        extracted_reads = extract_reads.out.reads
 }
 
 workflow length_distribution{
     take:
-        //TODO: Inputs
+        reads
     main:
-        //TODO: Logic
+        count_length_distribution(reads)
+        calculate_length_percentage(count_length_distribution.out.distribution)
     emit:
-        //TODO: Outputs
+        length_distribution = calculate_length_percentage.out.percentage
 }
 
 /*
