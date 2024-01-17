@@ -132,10 +132,10 @@ workflow preprocessing {
     main:
         quality_control(input_reads)
         adapter_removal(input_reads)
-        if(filter_bacterial_contamination) { 
+        if(params.filter_bacterial_contamination) { 
             filter_bacterial_contamination(adapter_removal.out.fastq_trimmed)
         }
-        processed_reads = filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq : adapter_removal.out.fastq_trimmed
+        processed_reads = params.filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq : adapter_removal.out.fastq_trimmed
         quality_control_2(processed_reads)
 
     emit:
@@ -194,7 +194,7 @@ workflow count_split_features{
         if(reference_extension == 'gb'){
             gb_to_gtf(reference)
         }
-        feature_info = reference_extension ? gb_to_gtf.out.gtf : annotation
+        feature_info = reference_extension == 'gb' ? gb_to_gtf.out.gtf : annotation
         count_features(alignemnts.flatten()
                         .combine(feature_info))
         feature_splitting(count_features.out.feature_alignments)
