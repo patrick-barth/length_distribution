@@ -1,11 +1,45 @@
+//TODO: Add container
+//TODO: add version samtools
 process extract_read_names {
-    //TODO: Write process
+    tag{query.simpleName}
+
+    input:
+    path(query)
+
+    output:
+    path("${query.simpleName}.txt"), emit: names
+
+    """
+	samtools view ${query} | cut -f1 > ${query.simpleName}.txt
+	"""
 }
 
+//TODO: Add container
+//TODO: add version cat
 process collect_reads {
-    //TODO: Write process
+    input:
+    path(query)
+
+    output:
+    path('collected_reads.fastq'), emit: reads
+
+    """
+	cat ${query} > collected_reads.fastq
+	"""
 }
 
+//TODO: Add container
+//TODO: add version seqtk
 process extract_reads {
-    //TODO: Write process
+    tag{names.simpleName}
+
+    input:
+    tuple path(names), path(reads)
+
+    output:
+    path(${names.simpleName}.extracted.fastq), emit: reads
+
+    """
+	seqtk subseq ${reads} ${names} > ${names.simpleName}.extracted.fastq 
+	"""
 }
