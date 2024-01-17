@@ -121,7 +121,7 @@ kraken_db = file(params.kraken_db_dir).toAbsolutePath()
 // Collect all input files
 input_files = input_reads.concat(Channel.of(annotation))
                     .concat(reference)
-                    .concat(kraken_db)
+                    .concat(Channel.of(kraken_db))
                     .flatten().toList()
 
 reference_extension = file(params.reference).getExtension()
@@ -243,7 +243,7 @@ workflow length_distribution{
  * Actual workflow
  */
 workflow {
-    
+
     preprocessing(input_reads,
         kraken_db)
     
