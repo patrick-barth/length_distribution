@@ -35,7 +35,7 @@ process extract_reads {
     tuple path(names), path(reads)
 
     output:
-    path(${names.simpleName}.extracted.fastq), emit: reads
+    path("${names.simpleName}.extracted.fastq"), emit: reads
 
     """
 	seqtk subseq ${reads} ${names} > ${names.simpleName}.extracted.fastq 
