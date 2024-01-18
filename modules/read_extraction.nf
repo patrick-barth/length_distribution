@@ -22,7 +22,6 @@ process collect_reads {
 
     output:
     path('collected_reads.fastq'), emit: reads
-    path("${task.process}.version.txt"), 	emit: version
 
     """
 	cat ${query} > collected_reads.fastq
