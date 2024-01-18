@@ -49,6 +49,8 @@ process mapping_bowtie{
 
 	"""
 	bowtie2 --no-unal \
+		--very-sensitive \
+		-L 10 \
 		-q \
 		${all_alignments} \
 		${some_alignments} \
