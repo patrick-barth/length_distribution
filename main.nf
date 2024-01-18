@@ -273,6 +273,9 @@ workflow {
     get_md5sum(input_files)
     collect_versions(quality_control.out.version
                         .concat(quality_control_2.out.version)
+                        .concat(gb_to_gtf.out.version)
+                        .concat(count_features.out.version)
+                        .concat(feature_splitting.out.version)
                         .concat(extract_read_names.out.version)
                         .concat(extract_reads.out.version)
                         .concat(count_length_distribution.out.version)
