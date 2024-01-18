@@ -236,7 +236,7 @@ workflow length_distribution{
         count_length_distribution(reads)
         calculate_length_percentage(count_length_distribution.out.distribution)
     emit:
-        length_distribution = calculate_length_percentage.out.percentage
+        length_percentage = calculate_length_percentage.out.percentage
 }
 
 /*
@@ -265,6 +265,8 @@ workflow {
     read_extraction(alignment.out.alignments,
         preprocessing.out.fastq_reads,
         collect_split)
+
+    length_distribution(read_extraction.out.extracted_reads)
 
     // Collect metadata
     collect_metadata()

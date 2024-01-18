@@ -17,7 +17,7 @@ process count_length_distribution {
 //TODO: add version python
 process calculate_length_percentage {
     tag{query.simpleName}
-    publishDir "${params.output_dir}/length-distribution", mode: 'copy'
+    publishDir "${params.output_dir}/length-distribution", mode: 'copy', pattern: "${query.simpleName}.perc.txt"
 
     input:
     path(query)
