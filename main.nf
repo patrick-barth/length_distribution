@@ -271,7 +271,11 @@ workflow {
     // Collect metadata
     collect_metadata()
     get_md5sum(input_files)
-    collect_versions(collect_metadata.out.version
+    collect_versions(quality_control.out.version
+                        .concat(quality_control_2.out.version)
+                        .concat(count_length_distribution.out.version)
+                        .concat(calculate_length_percentage.out.version)
+                        .concat(collect_metadata.out.version)
                         .concat(get_md5sum.out.version)
                         .unique()
                         .flatten().toList()
