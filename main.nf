@@ -148,6 +148,7 @@ workflow preprocessing {
         multiqc_quality_control                     = quality_control.out.output
         multiqc_quality_control_post_preprocessing  = quality_control_2.out.output
         multiqc_adapter_removal                     = adapter_removal.out.report_trimming
+        multiqc_bac_contamination                   = params.filter_bacterial_contamination ? filter_bacterial_contamination.out.report : Channel.empty()
 
         // data for downstream processes
         fastq_reads                                 = processed_reads
@@ -268,13 +269,18 @@ workflow {
 
     length_distribution(read_extraction.out.extracted_reads)
 
-    // Collect metadata
+
+
+    /*
+     * Collect metadata
+     */
+    
     multiqc(preprocessing.out.multiqc_adapter_removal,
         preprocessing.out.multiqc_quality_control,
         preprocessing.out.multiqc_quality_control_post_preprocessing,
         alignment.out.reports,
-        filter_bacterial_contamination.out.report
-        )
+        preprocessing.out.multiqc_bac_contamination
+    )
     collect_metadata()
     get_md5sum(input_files)
 
