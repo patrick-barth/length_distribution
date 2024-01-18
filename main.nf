@@ -175,8 +175,8 @@ workflow alignment {
                             reads)
 
             alignments_tmp          =   mapping_bowtie.out.bam_alignments
-            version_index_tmp       =   build_index_bowtie.out.version
-            version_align_tmp       =   mapping_bowtie.out.version
+            version_index           =   build_index_bowtie.out.version
+            version_align           =   mapping_bowtie.out.version
             report_tmp              =   mapping_bowtie.out.report
         } else if (params.aligner == "star"){
             build_index_STAR(reference,
@@ -185,14 +185,16 @@ workflow alignment {
                         .combine(build_index_STAR.out.index))
 
             alignments_tmp          =   mapping_STAR.out.bam_alignments
-            version_index_tmp       =   build_index_STAR.out.version
-            version_align_tmp       =   mapping_STAR.out.version
+            version_index           =   build_index_STAR.out.version
+            version_align           =   mapping_STAR.out.version
             report_tmp              =   mapping_STAR.out.report
         } 
+        //collect versions
+        versions = version_index.first()
+                    .concat(version_align.first())
 
     emit:
-        version_index   =   version_index_tmp
-        version_align   =   version_align_tmp
+        versions        =   versions
         reports         =   report_tmp
 
         alignments      =   alignments_tmp
@@ -213,8 +215,14 @@ workflow count_split_features{
                         .combine(feature_info))
         feature_splitting(count_features.out.feature_alignments)
 
+        //Collect versions
+        versions = count_features.out.version.first()
+                    .concat(feature_splitting.out.version.first())
+        versions = reference_extension == 'gb' ? versions.concat(gb_to_gtf.out.version.first()) : versions
+
     emit:
         read_names_split    =   feature_splitting.out.read_names
+        versions            =   versions
 }
 
 workflow read_extraction{
@@ -234,8 +242,13 @@ workflow read_extraction{
         extract_reads(collected_read_names.flatten()
                         .combine(collect_reads.out.reads))
 
+        //Collect versions
+        versions = extract_read_names.out.version.first()
+                    .concat(extract_reads.out.version.first())
+
     emit:
         extracted_reads = extract_reads.out.reads
+        versions        = versions
 }
 
 workflow length_distribution{
@@ -244,8 +257,14 @@ workflow length_distribution{
     main:
         count_length_distribution(reads)
         calculate_length_percentage(count_length_distribution.out.distribution)
+
+        //Collect versions
+        versions = count_length_distribution.out.version.first()
+                    .concat(calculate_length_percentage.out.version.first())
+
     emit:
-        length_percentage = calculate_length_percentage.out.percentage
+        length_percentage   = calculate_length_percentage.out.percentage
+        versions            = versions
 }
 
 /*
@@ -296,18 +315,13 @@ workflow {
     * Collect versions of all invoked processes
     */
     collected_versions = preprocessing.out.versions
-                        .concat(alignment.out.version_index.first())
-                        .concat(alignment.out.version_align.first())
-                        .concat(extract_read_names.out.version.first())
-                        .concat(extract_reads.out.version.first())
-                        .concat(count_length_distribution.out.version.first())
-                        .concat(calculate_length_percentage.out.version.first())
+                        .concat(alignment.out.versions)
+                        .concat(read_extraction.out.versions)
+                        .concat(length_distribution.out.versions)
                         .concat(collect_metadata.out.version)
                         .concat(get_md5sum.out.version)
 
-    collected_versions = reference_extension == 'gb' ? collected_versions.concat(gb_to_fasta.out.version.first()) : collected_versions
-    collected_versions = reference_extension == 'gb' && params.split_features ? collected_versions.concat(gb_to_gtf.out.version.first()) : collected_versions
-    collected_versions = params.split_features ? collected_versions.concat(count_features.out.version.first()).concat(feature_splitting.out.version.first()) : collected_versions
+    collected_versions = params.split_features ? collected_versions.concat(count_split_features.out.versions) : collected_versions
 
     collect_versions(collected_versions
                         .unique()
