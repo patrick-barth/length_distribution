@@ -272,27 +272,32 @@ workflow {
     multiqc(preprocessing.out.multiqc_adapter_removal,
         preprocessing.out.multiqc_quality_control,
         preprocessing.out.multiqc_quality_control_post_preprocessing,
-        alignment.out.report,
+        alignment.out.reports,
         filter_bacterial_contamination.out.report
         )
     collect_metadata()
     get_md5sum(input_files)
-    collect_versions(quality_control.out.version.first()
+
+    /*
+    * Collect versions of all invoked processes
+    */
+    collected_versions = quality_control.out.version.first()
                         .concat(quality_control_2.out.version.first())
                         .concat(adapter_removal.out.version.first())
-                        .concat(filter_bacterial_contamination.out.version.first())
-                        .concat(gb_to_fasta.out.version.first())
                         .concat(alignment.out.version_index.first())
                         .concat(alignment.out.version_align.first())
-                        .concat(gb_to_gtf.out.version.first())
-                        .concat(count_features.out.version.first())
-                        .concat(feature_splitting.out.version.first())
                         .concat(extract_read_names.out.version.first())
                         .concat(extract_reads.out.version.first())
                         .concat(count_length_distribution.out.version.first())
                         .concat(calculate_length_percentage.out.version.first())
                         .concat(collect_metadata.out.version)
                         .concat(get_md5sum.out.version)
+    collected_versions = params.filter_bacterial_contamination ? collected_versions.concat(filter_bacterial_contamination.out.version.first()) : collected_versions
+    collected_versions = reference_extension == 'gb' ? collected_versions.concat(gb_to_fasta.out.version.first()) : collected_versions
+    collected_versions = reference_extension == 'gb' && params.split_features ? collected_versions.concat(gb_to_gtf.out.version.first()) : collected_versions
+    collected_versions = params.split_features ? collected_versions.concat(count_features.out.version.first()).concat(feature_splitting.out.version.first()) : collected_versions
+
+    collect_versions(collected_versions
                         .unique()
                         .flatten().toList()
     )
