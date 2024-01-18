@@ -1,5 +1,4 @@
 //TODO: add container
-//TODO: add version seqret
 process gb_to_fasta {
 	
 	input:
@@ -7,9 +6,12 @@ process gb_to_fasta {
 
 	output:
 	path("${ref.simpleName}.fasta"), emit: reference
+	path("${task.process}.version.txt"), 	emit: version
 
 	"""
 	seqret -sequence ${ref} -outseq ${ref.simpleName}.fasta -osformat fasta
+
+	echo -e "${task.process}\tseqret\t\$(seqret --version)" > ${task.process}.version.txt
 	"""
 }
 
