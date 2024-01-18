@@ -18,8 +18,8 @@ process gb_to_gtf {
 	gffread ${ref.simpleName}.gff -o ${ref.simpleName}.gtf -T
 	sed -i 's/transcript_id/gene_id/g' ${ref.simpleName}.gtf
 
-    echo -e "${task.process}\tseqret\t\$(seqret --version)" > ${task.process}.version.txt
-    echo -e "${task.process}\tgffread\t\$(gffread --version)" >> ${task.process}.version.txt
+    echo -e "${task.process}\tseqret\t\$(seqret --version 2>&1)" > ${task.process}.version.txt
+    echo -e "${task.process}\tgffread\t\$(gffread --version 2>&1)" >> ${task.process}.version.txt
     """
 }
 
