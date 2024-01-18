@@ -143,12 +143,20 @@ workflow preprocessing {
         processed_reads = params.filter_bacterial_contamination ? filter_bacterial_contamination.out.fastq : adapter_removal.out.fastq_trimmed
         quality_control_2(processed_reads)
 
+        // Collect versions
+        versions = quality_control.out.version.first()
+                        .concat(quality_control_2.out.version.first())
+                        .concat(adapter_removal.out.version.first())
+        versions = params.filter_bacterial_contamination ? versions.concat(filter_bacterial_contamination.out.version.first()) : versions
+
     emit:
         //data for multiqc
         multiqc_quality_control                     = quality_control.out.output
         multiqc_quality_control_post_preprocessing  = quality_control_2.out.output
         multiqc_adapter_removal                     = adapter_removal.out.report_trimming
         multiqc_bac_contamination                   = params.filter_bacterial_contamination ? filter_bacterial_contamination.out.report : Channel.empty()
+
+        versions = versions
 
         // data for downstream processes
         fastq_reads                                 = processed_reads
@@ -287,9 +295,7 @@ workflow {
     /*
     * Collect versions of all invoked processes
     */
-    collected_versions = quality_control.out.version.first()
-                        .concat(quality_control_2.out.version.first())
-                        .concat(adapter_removal.out.version.first())
+    collected_versions = preprocessing.out.versions
                         .concat(alignment.out.version_index.first())
                         .concat(alignment.out.version_align.first())
                         .concat(extract_read_names.out.version.first())
@@ -298,7 +304,7 @@ workflow {
                         .concat(calculate_length_percentage.out.version.first())
                         .concat(collect_metadata.out.version)
                         .concat(get_md5sum.out.version)
-    collected_versions = params.filter_bacterial_contamination ? collected_versions.concat(filter_bacterial_contamination.out.version.first()) : collected_versions
+
     collected_versions = reference_extension == 'gb' ? collected_versions.concat(gb_to_fasta.out.version.first()) : collected_versions
     collected_versions = reference_extension == 'gb' && params.split_features ? collected_versions.concat(gb_to_gtf.out.version.first()) : collected_versions
     collected_versions = params.split_features ? collected_versions.concat(count_features.out.version.first()).concat(feature_splitting.out.version.first()) : collected_versions
