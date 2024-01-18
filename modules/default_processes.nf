@@ -49,10 +49,10 @@ process multiqc{
 
 	input:
 	path(adapter)
-	path(qual)
 	path(qc1)
 	path(qc2)
 	path(mapping)
+    path(bac_filter)
 
 	output:
 	path("multiqc_*"),                      emit: output

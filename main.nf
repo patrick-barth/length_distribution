@@ -145,8 +145,8 @@ workflow preprocessing {
 
     emit:
         //data for multiqc
-        multiqc_quality_control                     = quality_control.out
-        multiqc_quality_control_post_preprocessing  = quality_control_2.out
+        multiqc_quality_control                     = quality_control.out.output
+        multiqc_quality_control_post_preprocessing  = quality_control_2.out.output
         multiqc_adapter_removal                     = adapter_removal.out.report_trimming
 
         // data for downstream processes
@@ -269,22 +269,28 @@ workflow {
     length_distribution(read_extraction.out.extracted_reads)
 
     // Collect metadata
+    multiqc(preprocessing.out.multiqc_adapter_removal,
+        preprocessing.out.multiqc_quality_control,
+        preprocessing.out.multiqc_quality_control_post_preprocessing,
+        alignment.out.report,
+        filter_bacterial_contamination.out.report
+        )
     collect_metadata()
     get_md5sum(input_files)
-    collect_versions(quality_control.out.version
-                        .concat(quality_control_2.out.version)
-                        .concat(adapter_removal.out.version)
-                        .concat(filter_bacterial_contamination.out.version)
-                        .concat(gb_to_fasta.out.version)
-                        .concat(alignment.out.version_index)
-                        .concat(alignment.out.version_align)
-                        .concat(gb_to_gtf.out.version)
-                        .concat(count_features.out.version)
-                        .concat(feature_splitting.out.version)
-                        .concat(extract_read_names.out.version)
-                        .concat(extract_reads.out.version)
-                        .concat(count_length_distribution.out.version)
-                        .concat(calculate_length_percentage.out.version)
+    collect_versions(quality_control.out.version.first()
+                        .concat(quality_control_2.out.version.first())
+                        .concat(adapter_removal.out.version.first())
+                        .concat(filter_bacterial_contamination.out.version.first())
+                        .concat(gb_to_fasta.out.version.first())
+                        .concat(alignment.out.version_index.first())
+                        .concat(alignment.out.version_align.first())
+                        .concat(gb_to_gtf.out.version.first())
+                        .concat(count_features.out.version.first())
+                        .concat(feature_splitting.out.version.first())
+                        .concat(extract_read_names.out.version.first())
+                        .concat(extract_reads.out.version.first())
+                        .concat(count_length_distribution.out.version.first())
+                        .concat(calculate_length_percentage.out.version.first())
                         .concat(collect_metadata.out.version)
                         .concat(get_md5sum.out.version)
                         .unique()
