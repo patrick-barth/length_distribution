@@ -1,39 +1,39 @@
-/*
- * Checks reads for general metrics
- * Input: [FASTQ] Unpreprocessed reads 
- * Output: [HTML] General report for unpreprocessed reads 
- */
 process quality_control {
 	tag {query.simpleName}
+	publishDir "${params.output_dir}/statistics/qc-preprocessing", mode: 'copy', pattern: "${query.baseName}_fastqc.{html,zip}"
+
 	
 	input:
 	path query
 
 	output:
-	path "${query.baseName}*"
+	path "${query.baseName}_fastqc.{html,zip}", 				emit: output
+	path("${task.process}.version.txt"), 	emit: version
 
 	"""
 	fastqc ${query} -o .
+
+	echo -e "${task.process}\tFastQC\t\$(fastqc --version | rev | cut -f 1 -d' ' | rev)" > ${task.process}.version.txt
 	"""
 }
 
-/*
- * Checks preprocessed reads for general metrics
- * Input: [FASTQ] Preprocessed reads 
- * Output: [HTML] General report for preprocessed reads
- */
 process quality_control_2 {
 	tag {query.simpleName}
+	publishDir "${params.output_dir}/statistics/qc-postprocessing", mode: 'copy', pattern: "${query.simpleName}_2_fastqc.{html,zip}"
+
 	
 	input:
 	path query
 
 	output:
-	path "quality-control-2*"
+	path "${query.simpleName}_2_fastqc.{html,zip}", emit: output
+	path("${task.process}.version.txt"), 			emit: version
 
 	"""
-	cat ${query} > quality-control-2.fastq
-	fastqc quality-control-2.fastq -o .
+	cat ${query} > ${query.simpleName}_2.fastq
+	fastqc ${query.simpleName}_2.fastq -o .
+
+	echo -e "${task.process}\tFastQC\t\$(fastqc --version | rev | cut -f 1 -d' ' | rev)" > ${task.process}.version.txt
 	"""
 }
 
@@ -65,7 +65,6 @@ process adapter_removal {
 
 //TODO: Create Docker container
 //TODO: Check which reports are actually important
-//TODO: Get version of Kraken2
 //TODO: Get version of bracken
 process filter_bacterial_contamination {
 	tag {query.simpleName}
@@ -78,6 +77,7 @@ process filter_bacterial_contamination {
 	output:
 	path("${query.simpleName}.bac-filter.report"), emit: report
 	path("${query.simpleName}.bac-filtered.fastq"), emit: fastq
+	path("${task.process}.version.txt"), 	emit: version
 
 	"""
 	kraken2	--use-names \
@@ -87,5 +87,7 @@ process filter_bacterial_contamination {
 		--unclassified-out ${query.simpleName}.bac-filtered.fastq \
 		${query} \
 		> ${query.simpleName}.kraken
+
+	echo -e "${task.process}\tkraken2\t\$(kraken2 --version | head -1 | cut -d' ' -f3)" > ${task.process}.version.txt
 	"""
 }
