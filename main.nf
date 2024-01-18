@@ -61,17 +61,32 @@ if ( params.help ) {
                 |       
                 |Required arguments:
                 |   --reads         Location of the input file file (FASTQ).
+                |   --reference     Reference file. Can be provided as .fasta or .gb. If provided as .gb the 
+                |                   reference will also be used as annotation file for feature splitting
                 |
                 |Optional arguments:
+                |   --annotation    Annotation file. Will be used for alignment and to split read extraction
+                |                   according to features. Can be provided as .gtf or .gff
                 |   --min_length    Minimum length for reads after adapter trimming.
                 |                   [default: ${params.min_length}]
-                |   --min_qual      Minimum base quality.
-                |                   [default: ${params.min_qual}]
-                |   --min_percent_qual_filter   Minimum percentage of bases within a read that need to
-                |                               be above the quality threshold
-                |                               [default: ${params.min_percent_qual_filter}]
                 |   --aligner       States which alignment tool is used. Currently available are: 
                 |                   'bowtie2' and 'star'
+                |                   [default: ${params.aligner}]
+                |   --report_all_alignments       Reports all potantial alignments per read. Overwrites --max_alignments
+                |                                 [default: ${params.report_all_alignments}]
+                |   --max_alignments        Maximum number of alignments returned per read.
+                |                           [default: Default value of chosen aligner (--aligner)]
+                |   --split_features        Split reads according to the feature they aligned to. Will create one output
+                |                           per feature (given that at least one read aligned to the feature) additional
+                |                           to the output for the complete sample
+                |                           [default: ${params.split_features}]
+                |   --filter_bacterial_contamination    Filters reads for bacterial contaminations.
+                |                                       [default: ${params.filter_bacterial_contamination}]
+                |   --kraken_db_dir     Database used to filter out bacterial contamination
+                |                       [default: ${params.kraken_db_dir}]
+                |                       Default only works with access to the computational system of the computational resources
+                |                       of the Bioinformatics & Systems Biology group of the Justus Liebig University in Giessen:
+                |                       https://www.uni-giessen.de/de/fbz/fb08/Inst/bioinformatik
                 |  -w            The NextFlow work directory. Delete the directory once the process
                 |                is finished [default: ${workDir}]""".stripMargin()
     // Print the help with the stripped margin and exit
@@ -95,6 +110,12 @@ log.info """\
         Minmum read length              : ${params.min_length}
         Filter bacterial contamination  : ${params.filter_bacterial_contamination}
         Kraken DB directory             : ${params.kraken_db_dir}
+        --
+        Aligner                         : ${params.aligner}
+        Report all alignments           : ${params.report_all_alignments}
+        Maximum alignments per read     : ${params.max_alignments}
+        Split features                  : ${params.split_features}
+
         --
         run as       : ${workflow.commandLine}
         started at   : ${workflow.start}
