@@ -396,7 +396,7 @@ workflow {
                         .concat(get_md5sum.out.version)
 
     collected_versions = params.split_features ? collected_versions.concat(count_split_features.out.versions) : collected_versions
-    collected_versions = params.nucleotide_distribution ? collect_versions.concat(nucleotide_distribution.out.versions) : collected_versions
+    collected_versions = params.nucleotide_distribution ? collected_versions.concat(nucleotide_distribution.out.versions) : collected_versions
 
     collect_versions(collected_versions
                         .unique()
