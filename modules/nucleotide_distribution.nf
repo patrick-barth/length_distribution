@@ -87,7 +87,7 @@ process calculate_nucleotide_distribution{
 	publishDir "${params.output_dir}/nucleotide_distribution", mode: 'copy'
 
 	input:
-	set val(name), file(sequences)
+	tuple val(name), file(sequences)
 
 	output:
 	file("${name}.${params.nucleotide_length}.nuc-distribution.tsv"), emit: distribution
