@@ -51,14 +51,16 @@ include{
     calculate_length_percentage
 } from './modules/length_distribution.nf'
 
-include{
-    filter_for_length
-    //extract_read_names
-    //collect_reads
-    //extract_reads
-    extract_sequences_only
-    calculate_nucleotide_distribution
-} from './modules/nucleotide_distribution.nf'
+if(params.nucleotide_distribution){
+    include{
+        filter_for_length
+        //extract_read_names
+        //collect_reads
+        //extract_reads
+        extract_sequences_only
+        calculate_nucleotide_distribution
+    } from './modules/nucleotide_distribution.nf'
+}
 
 /*
  * Prints help and exits workflow afterwards when parameter --help is set to true
@@ -95,6 +97,11 @@ if ( params.help ) {
                 |                       Default only works with access to the computational system of the computational resources
                 |                       of the Bioinformatics & Systems Biology group of the Justus Liebig University in Giessen:
                 |                       https://www.uni-giessen.de/de/fbz/fb08/Inst/bioinformatik
+                |   --nucleotide_distribution   Calculates nucleotide distribution for every position of reads and alignments of
+                |                               a specified length
+                |                               [default: ${params.nucleotide_distribution}]
+                |   --nucleotide_length         Read/Alignment lengths to be investigated for nucleotide distribution
+                |                               [default: ${params.nucleotide_length}]
                 |  -w            The NextFlow work directory. Delete the directory once the process
                 |                is finished [default: ${workDir}]""".stripMargin()
     // Print the help with the stripped margin and exit
@@ -123,7 +130,8 @@ log.info """\
         Report all alignments           : ${params.report_all_alignments}
         Maximum alignments per read     : ${params.max_alignments}
         Split features                  : ${params.split_features}
-
+        Nucleotide distribution         : ${params.nucleotide_distribution}
+        Nucleotide length               : ${params.nucleotide_length}
         --
         run as       : ${workflow.commandLine}
         started at   : ${workflow.start}
@@ -359,9 +367,10 @@ workflow {
         collect_split)
 
     length_distribution(read_extraction.out.extracted_reads)
-    nucleotide_distribution(preprocessing.out.fastq_reads,
-        alignment.out.alignments)
-
+    if(params.nucleotide_distribution){
+        nucleotide_distribution(preprocessing.out.fastq_reads,
+            alignment.out.alignments)
+    }
 
     /*
      * Collect metadata
