@@ -315,7 +315,7 @@ workflow nucleotide_distribution{
             .combine(extract_reads.out.reads)
             .set{alignable_reads}
         extract_sequences_only(all_reads.concat(alignable_reads))
-        calculate_nucleotide_distribution(extract_sequences_only
+        calculate_nucleotide_distribution(extract_sequences_only.out.sequences
                                             .map{file -> tuple(file.name.simpleName, file)}
                                             .groupTuple())
 
