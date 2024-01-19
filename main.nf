@@ -305,7 +305,7 @@ workflow nucleotide_distribution{
         filter_for_length(processed_reads)
         extract_read_names(alignments)
         collect_reads(filter_for_length.out.reads)
-        extract_reads(extract_read_names.flatten()
+        extract_reads(extract_read_names.out.names.flatten()
                         .combine(collect_reads.out.reads))
         // Create new channels with read origins to help distinguish them
         Channel.of('all')
