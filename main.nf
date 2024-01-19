@@ -51,6 +51,14 @@ include{
     calculate_length_percentage
 } from './modules/length_distribution.nf'
 
+include{
+    filter_for_length
+    //extract_read_names
+    //collect_reads
+    //extract_reads
+    extract_sequences_only
+    calculate_nucleotide_distribution
+} from './modules/nucleotide_distribution.nf'
 
 /*
  * Prints help and exits workflow afterwards when parameter --help is set to true
@@ -288,6 +296,36 @@ workflow length_distribution{
         versions            = versions
 }
 
+workflow nucleotide_distribution{
+    take:
+        processed_reads
+        alignments
+        //lengths //TODO: needs to be implemented in away that several lengths parameters are allowed
+    main:
+        filter_for_length(processed_reads)
+        extract_read_names(alignments)
+        collect_reads(filter_for_length.out.reads)
+        extract_reads(extract_read_names.flatten()
+                        .combine(collect_reads.out.reads))
+        // Create new channels with read origins to help distinguish them
+        Channel.of('all')
+            .combine(filter_for_length.out.reads)
+            .set{all_reads}
+        Channel.of('alignments')
+            .combine(extract_reads.out.reads)
+            .set{alignable_reads}
+        extract_sequences_only(all_reads.concat(alignable_reads))
+        calculate_nucleotide_distribution(extract_sequences_only
+                                            .map{file -> tuple(file.name.simpleName, file)}
+                                            .groupTuple())
+
+
+        //Collect versions
+
+    emit:
+        distribution    = calculate_nucleotide_distribution.out.distribution
+}
+
 /*
  * Actual workflow
  */
@@ -316,7 +354,8 @@ workflow {
         collect_split)
 
     length_distribution(read_extraction.out.extracted_reads)
-
+    nucleotide_distribution(preprocessing.out.fastq_reads,
+        alignment.out.alignments)
 
 
     /*
