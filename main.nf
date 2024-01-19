@@ -319,11 +319,16 @@ workflow nucleotide_distribution{
                                             .map{file -> tuple(file.name - ~/\.[\w.]+.fastq$/, file)}
                                             .groupTuple())
 
-
         //Collect versions
+        versions = filter_for_length.out.version.first()
+                    .concat(extract_read_names.out.version.first())
+                    .concat(extract_reads.out.version.first())
+                    .concat(extract_sequences_only.out.version.first())
+                    .concat(calculate_nucleotide_distribution.out.version.first())
 
     emit:
         distribution    = calculate_nucleotide_distribution.out.distribution
+        versions        = versions
 }
 
 /*
@@ -382,6 +387,7 @@ workflow {
                         .concat(get_md5sum.out.version)
 
     collected_versions = params.split_features ? collected_versions.concat(count_split_features.out.versions) : collected_versions
+    collected_versions = params.nucleotide_distribution ? collect_versions.concat(nucleotide_distribution.out.versions) : collected_versions
 
     collect_versions(collected_versions
                         .unique()

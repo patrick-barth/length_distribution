@@ -8,9 +8,13 @@ process filter_for_length {
 
 	output:
 	path("${query.simpleName}.filtered.fastq"), emit: reads
+	path("${task.process}.version.txt"), 		emit: version
+
 
 	"""
 	cutadapt -m ${params.nucleotide_length} -M ${params.nucleotide_length} -o ${query.simpleName}.filtered.fastq ${query}
+
+	echo -e "${task.process}\tcutadapt\t\$(cutadapt --version)" > ${task.process}.version.txt
 	"""
 }
 
@@ -22,7 +26,7 @@ process extract_read_names {
     path(query)
 
     output:
-    path("${query.simpleName}.txt"), emit: names
+    path("${query.simpleName}.txt"), 		emit: names
     path("${task.process}.version.txt"), 	emit: version
 
     """
@@ -72,9 +76,13 @@ process extract_sequences_only {
 
 	output:
 	path("${query.simpleName}.${origin}.txt"), emit: sequences
+	path("${task.process}.version.txt"), 	emit: version
+
 
 	"""
 	awk '{if(NR%4==2) print \$1}' ${query} > ${query.simpleName}.${origin}.txt
+
+	echo -e "${task.process}\tawk\t\$(awk -W version | head -1)" > ${task.process}.version.txt
 	"""
 }
 
@@ -90,8 +98,11 @@ process calculate_nucleotide_distribution{
 
 	output:
 	path("${name}.${params.nucleotide_length}.nuc-distribution.tsv"), emit: distribution
+	path("${task.process}.version.txt"), 	emit: version
 
 	"""
 	calc-nucleotide-distribution.py --sequences_all ${name}.all.txt --sequences_alignment ${name}.alignments.txt --length ${params.nucleotide_length} --output ${name}.${params.nucleotide_length}.nuc-distribution.tsv
+
+	echo -e "${task.process}\tpython\t\$(python --version | rev | cut -d' ' -f1 | rev)" > ${task.process}.version.txt
 	"""
 }
