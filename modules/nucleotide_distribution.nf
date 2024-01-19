@@ -82,15 +82,14 @@ process extract_sequences_only {
 //TODO: Add version
 process calculate_nucleotide_distribution{
 	tag {name}
-	echo true
 
 	publishDir "${params.output_dir}/nucleotide_distribution", mode: 'copy'
 
 	input:
-	tuple val(name), file(sequences)
+	tuple val(name), path(sequences)
 
 	output:
-	file("${name}.${params.nucleotide_length}.nuc-distribution.tsv"), emit: distribution
+	path("${name}.${params.nucleotide_length}.nuc-distribution.tsv"), emit: distribution
 
 	"""
 	calc-nucleotide-distribution.py --sequences_all ${name}.all.txt --sequences_alignment ${name}.alignments.txt --length ${params.nucleotide_length} --output ${name}.${params.nucleotide_length}.nuc-distribution.tsv
